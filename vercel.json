@@ -1,0 +1,29 @@
+{
+    "version": 2,
+    "regions": ["sin1"],
+    "crons": [
+        {
+            "path": "/api/scheduled-tasks/reminders",
+            "schedule": "0 2 * * *"
+        }
+    ],
+    "builds": [
+        {
+            "src": "dist/main.js",
+            "use": "@vercel/node"
+        }
+    ],
+    "routes": [
+        {
+            "src": "/(.*)",
+            "dest": "dist/main.js",
+            "methods": ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+            "headers": {
+                "Access-Control-Allow-Credentials": "true",
+                "Access-Control-Allow-Origin": "https://pwa-cdingin.vercel.app",
+                "Access-Control-Allow-Methods": "GET,OPTIONS,PATCH,DELETE,POST,PUT",
+                "Access-Control-Allow-Headers": "*"
+            }
+        }
+    ]
+}

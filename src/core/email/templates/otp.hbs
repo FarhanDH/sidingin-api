@@ -1,0 +1,101 @@
+<html>
+  <head>
+    <meta charset='UTF-8' />
+    <title>Kode OTP Cdingin</title>
+
+    <style>
+      body {
+        background-color: #f8f9fa;
+        font-family: 'Arial', sans-serif;
+        margin: 0;
+        padding: 0;
+      }
+
+      .email-wrapper {
+        max-width: 600px;
+        margin: 30px auto;
+        background-color: #ffffff;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        overflow: hidden;
+      }
+
+      .header {
+        background-color: #09a3c9;
+        color: white;
+        padding: 10px 28px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+
+      .header h1 {
+        margin: 0;
+        font-size: 22px;
+        letter-spacing: 1px;
+      }
+
+      .content {
+        padding: 30px;
+        color: #333;
+      }
+
+      .otp-code {
+        font-size: 42px;
+        font-weight: 700;
+        color: #09a3c9;
+        letter-spacing: 8px;
+        margin: 20px 0;
+        text-align: center;
+      }
+
+      .notice {
+        font-size: 14px;
+        margin-top: 20px;
+        color: #555;
+        line-height: 1.6;
+      }
+
+      .footer {
+        font-size: 11px;
+        color: #999;
+        padding: 20px 30px;
+        background-color: #f0f0f0;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div class='email-wrapper'>
+      <div class='header'>
+        <img
+          src='https://cdingin.vercel.app/icon-512x512-white.png'
+          alt='Cdingin Logo'
+          width='50'
+        />
+        <h1>cdingin</h1>
+      </div>
+      <div class='content'>
+        <p>Hai,</p>
+        <p>Gunakan kode di bawah ini untuk melanjutkan proses verifikasi akun
+          Anda di
+          <strong>Cdingin</strong>:</p>
+
+        <div class='otp-code'>{{otpValue}}</div>
+
+        <p class='notice'>
+          Kode ini hanya berlaku selama
+          <strong>{{expiresAt}} menit</strong>.<br />
+          Jangan pernah membagikan kode ini kepada siapa pun, termasuk pihak
+          Cdingin.
+        </p>
+      </div>
+      <div class='footer'>
+        Email ini dibuat secara otomatis. Mohon untuk tidak membalas.
+        <br />
+        Cdingin tidak akan pernah meminta password atau informasi pribadi Anda
+        melalui email atau media lain.
+      </div>
+    </div>
+  </body>
+</html>

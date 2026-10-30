@@ -1,0 +1,234 @@
+<html lang='id'>
+    <head>
+        <meta charset='UTF-8' />
+        <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+        <title>Invoice {{invoice.invoice_number}}</title>
+        <style>
+            body {
+                font-family:
+                    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+                    Helvetica, Arial, sans-serif;
+                margin: 0;
+                padding: 0;
+                background-color: #f7fafc;
+                color: #1a202c;
+                -webkit-print-color-adjust: exact;
+            }
+            .container {
+                max-width: 800px;
+                margin: 20px auto;
+                padding: 0; /* Padding diatur per section */
+                background-color: white;
+                border: 1px solid #e2e8f0;
+                border-radius: 8px;
+            }
+            .header {
+                background-color: #006c7f; /* Warna primer Anda */
+                color: white;
+                padding: 24px;
+                border-radius: 8px 8px 0 0;
+            }
+            .header h1 {
+                margin: 0;
+                font-size: 24px;
+                font-weight: 600;
+            }
+            .header p {
+                margin: 4px 0 0;
+                font-size: 14px;
+                opacity: 0.9;
+            }
+            .greeting {
+                padding: 24px;
+            }
+            .greeting h2 {
+                margin: 0 0 4px 0;
+                font-size: 20px;
+                font-weight: 600;
+            }
+            .total-box {
+                background-color: #f7fafc;
+                padding: 16px 24px;
+                border-radius: 8px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                font-size: 16px;
+                margin: 0 24px 24px 24px;
+            }
+            .section {
+                padding: 24px;
+                border-top: 1px solid #e2e8f0;
+            }
+            .section-title {
+                font-size: 16px;
+                font-weight: 600;
+                margin: 0 0 16px 0;
+                color: #4a5568;
+            }
+            .transaction-table {
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 14px;
+            }
+            .transaction-table th,
+            .transaction-table td {
+                padding: 12px 0;
+                text-align: left;
+            }
+            .transaction-table thead {
+                border-bottom: 2px solid #e2e8f0;
+            }
+            .transaction-table tbody tr {
+                border-bottom: 1px solid #e2e8f0;
+            }
+            .transaction-table .qty,
+            .transaction-table .price {
+                color: #4a5568;
+            }
+            .transaction-table .align-right {
+                text-align: right;
+            }
+            .summary-line {
+                display: flex;
+                justify-content: space-between;
+                margin-top: 12px;
+                padding-top: 12px;
+            }
+            .total-summary {
+                border-top: 2px solid #1a202c;
+                font-weight: 700;
+                font-size: 18px;
+            }
+            .detail-item {
+                display: flex;
+                align-items: flex-start;
+                gap: 16px;
+                margin-bottom: 16px;
+            }
+            .detail-icon {
+                width: 20px;
+                height: 20px;
+                margin-top: 2px;
+                opacity: 0.7;
+            }
+            .footer {
+                padding: 24px;
+                text-align: center;
+                font-size: 12px;
+                color: #718096;
+                border-top: 1px solid #e2e8f0;
+            }
+        </style>
+    </head>
+    <body>
+        <div class='container'>
+            <div class='header'>
+                <h1>cdingin ❄️</h1>
+                <p>
+                    {{formatDate invoice.issued_at}}
+                    <br />
+                    ID Tagihan:
+                    {{invoice.invoice_number}}
+                </p>
+            </div>
+
+            <div class='greeting'>
+                <p>Hai {{invoice.order.customer.full_name}},</p>
+                <p style='font-size: 18px; margin: 0;'><strong>
+                        Makasih udah pakai Cdingin!
+                    </strong>
+                </p>
+            </div>
+
+            <div class='total-box'>
+                <span style='font-weight: 600;'>Total Dibayar</span>
+                <span
+                    style='font-weight: 700; font-size: 20px; color: #006C7F;'
+                >
+                    Rp{{formatCurrency invoice.total_amount}}
+                </span>
+            </div>
+
+            <div class='section'>
+                <h3 class='section-title'>Rincian Transaksi</h3>
+                <table class='transaction-table' style='padding: 2px;'>
+                    <thead style='background-color: #f7fafc;'>
+                        <tr>
+                            <th>Nama Barang</th>
+                            <th class='align-right'>Banyaknya</th>
+                            <th class='align-right'>Harga</th>
+                            <th class='align-right'>Jumlah</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{#each invoice.items}}
+                            <tr>
+                                <td class='desc'>{{this.description}}</td>
+                                <td
+                                    class='qty align-right'
+                                >{{this.quantity}}</td>
+                                <td
+                                    class='price align-right'
+                                >@Rp{{formatCurrency this.unit_price}}</td>
+                                <td
+                                    class='subtotal align-right'
+                                    style='font-weight: 600;'
+                                >Rp{{formatCurrency this.total_price}}</td>
+                            </tr>
+                        {{/each}}
+                    </tbody>
+                </table>
+                <div class='summary-line total-summary'>
+                    <div>Total Pembayaran</div>
+                    <div>Rp{{formatCurrency invoice.total_amount}}</div>
+                </div>
+                <div
+                    class='summary-line'
+                    style='font-size: 14px; font-weight: normal; color: #4a5568;'
+                >
+                    <div>Bayar pakai
+                        {{formatPaymentMethod invoice.payments}}</div>
+                    <div>Rp{{formatCurrency invoice.total_amount}}</div>
+                </div>
+            </div>
+
+            <div class='section'>
+                <h3 class='section-title'>Detail Servis</h3>
+                <div class='detail-details'>
+                    {{#if invoice.order.technician}}
+                        <div class='detail-item'>
+                            <div>
+                                <strong>Teknisi yang bertugas</strong>
+                                <br />
+                                {{invoice.order.technician.full_name}}
+                            </div>
+                        </div>
+                    {{/if}}
+                    <div class='detail-item'>
+
+                        <div>
+                            <strong>Servis dilakukan pada
+                                {{formatFullDate invoice.order.updated_at}}
+                                di</strong>
+                            <br />
+                            {{invoice.order.service_location_address}}
+                            {{#if invoice.order.service_location_note}}
+                                <br />
+                                <small>Catatan Lokasi:
+                                    {{invoice.order.service_location_note}}</small>
+                            {{/if}}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class='footer'>
+                <p>Terima kasih atas kepercayaan Anda. Semoga AC Anda tetap
+                    dingin!</p>
+                <p style='font-size: 14px; margin-top: 50px;'><strong>Herdi Jaya
+                        Service</strong></p>
+            </div>
+        </div>
+    </body>
+</html>

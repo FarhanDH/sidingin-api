@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package rating;
+
+// Determines where the generated files will be placed and the package name.
+// option go_package = "github.com/FarhanDH/sidingin-rating-service/pb";
+
+service RatingService {
+  rpc GetBatchRatingStatus(GetBatchRatingStatusRequest) returns (GetBatchRatingStatusResponse);
+}
+
+message GetBatchRatingStatusRequest {
+  // repeated means array
+  repeated string order_ids = 1;
+}
+
+message GetBatchRatingStatusResponse {
+  map<string, string> statuses = 1;
+}
