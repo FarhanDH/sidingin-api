@@ -1,7 +1,9 @@
+import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
 import { Metadata, status } from '@grpc/grpc-js';
 import { Inject, Injectable, Logger, OnModuleInit } from '@nestjs/common';
-import { firstValueFrom, Observable, timeout, TimeoutError } from 'rxjs';
 import { ClientGrpc } from '@nestjs/microservices';
+import { firstValueFrom, Observable, timeout, TimeoutError } from 'rxjs';
+import { OrderCompletedPayload } from './dto/rating.dto';
 import { RATING_GRPC_CLIENT } from './rating.constans';
 
 interface GetBatchRatingStatusResponse {
@@ -10,7 +12,7 @@ interface GetBatchRatingStatusResponse {
 
 interface RatingGrpcContract {
     getBatchRatingStatus(
-        data: { orderIds: string[] },
+        data: { order_ids: string[] },
         metadata?: Metadata,
     ): Observable<GetBatchRatingStatusResponse>;
 }
@@ -18,11 +20,11 @@ interface RatingGrpcContract {
 @Injectable()
 export class RatingService implements OnModuleInit {
     private readonly logger = new Logger(RatingService.name);
-
     private ratingService!: RatingGrpcContract;
 
     constructor(
         @Inject(RATING_GRPC_CLIENT) private readonly grpcClient: ClientGrpc,
+        private readonly amqpConnection: AmqpConnection,
     ) {}
 
     onModuleInit() {
@@ -49,7 +51,7 @@ export class RatingService implements OnModuleInit {
         try {
             const response = await firstValueFrom(
                 this.ratingService
-                    .getBatchRatingStatus({ orderIds }, metadata)
+                    .getBatchRatingStatus({ order_ids: orderIds }, metadata)
                     .pipe(timeout(2000)),
             );
 
@@ -86,5 +88,21 @@ export class RatingService implements OnModuleInit {
         }
 
         return false;
+    }
+
+    publishOrderCompletedEvent(completedOrder: OrderCompletedPayload) {
+        this.logger.debug(
+            `RatingService.publishOrderCompletedEvent(): order: `,
+            completedOrder,
+        );
+
+        this.amqpConnection.publish(
+            'sidingin.events',
+            'order.completed',
+            completedOrder,
+            {
+                contentType: 'application/json',
+            },
+        );
     }
 }

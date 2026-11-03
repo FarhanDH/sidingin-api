@@ -59,5 +59,8 @@ export const configuration = () => {
             cluster: process.env.PUSHER_CLUSTER,
             useTLS: process.env.USE_TLS as unknown as boolean,
         },
+        messages: {
+            rabbitMqUrl: process.env.RATING_RMQ_URL,
+        },
     };
 };

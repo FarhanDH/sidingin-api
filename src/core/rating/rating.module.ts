@@ -1,13 +1,18 @@
+import { RabbitMQModule } from '@golevelup/nestjs-rabbitmq';
+import { ChannelCredentials } from '@grpc/grpc-js';
 import { Module } from '@nestjs/common';
 import { ClientsModule, Transport } from '@nestjs/microservices';
+import { configDotenv } from 'dotenv';
 import { join } from 'path';
-import { RatingService } from './rating.service';
+import { configuration } from '~/common/configuration';
 import { RATING_GRPC_CLIENT } from './rating.constans';
-import { ChannelCredentials } from '@grpc/grpc-js';
+import { RatingService } from './rating.service';
+configDotenv({ path: '.env' });
 
 @Module({
     imports: [
         ClientsModule.register([
+            // GRPC client
             {
                 name: RATING_GRPC_CLIENT,
                 transport: Transport.GRPC,
@@ -25,6 +30,10 @@ import { ChannelCredentials } from '@grpc/grpc-js';
                 },
             },
         ]),
+        RabbitMQModule.forRoot({
+            uri: configuration().messages.rabbitMqUrl,
+            connectionInitOptions: { wait: false },
+        }),
     ],
     providers: [RatingService],
     exports: [RatingService],

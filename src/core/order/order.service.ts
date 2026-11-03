@@ -61,7 +61,6 @@ export class OrderService {
     constructor(
         @InjectRepository(Order)
         private readonly orderRepository: Repository<Order>,
-        @InjectRepository(AcUnit)
         private readonly userService: UserService,
         private readonly pushSubscriptionService: PushSubscriptionService,
         private readonly notificationService: NotificationService,
@@ -702,7 +701,7 @@ export class OrderService {
      * @throws {@link InternalServerErrorException} if an error occurs while updating the order status.
      */
     async updateStatusByIdForTechnician(
-        user: JwtPayload,
+        user: any,
         orderId: string,
         updateStatusDto: UpdateOrderStatusRequestDto,
     ): Promise<OrderResponse> {
@@ -761,6 +760,7 @@ export class OrderService {
             }
 
             // Get the technician entity from the database
+            console.log(user);
             const technicianEntity = await this.userService.getById(user.sub);
 
             // Update the order status and technician
@@ -1082,6 +1082,7 @@ export class OrderService {
     async getOneByIdForCustomer(
         user: JwtPayload,
         orderId: string,
+        accessToken: string,
     ): Promise<OrderResponse> {
         this.logger.debug(
             `OrderService.getOneByIdForCustomer(user: ${user.sub}) orderId: ${orderId}`,
@@ -1096,11 +1097,21 @@ export class OrderService {
                 invoice: true,
             },
         });
+        let ratingStatuses: Record<string, string> | undefined;
+        if (order.status === OrderStatusEnum.COMPLETED) {
+            ratingStatuses = await this.ratingService.getBatchStatus(
+                [order.id],
+                accessToken,
+            );
+        }
 
         const enrichedOrder = await this.enrichOrderWithAddress(order);
 
         // Return the order response
-        return toOrderResponse(enrichedOrder);
+        return toOrderResponse(
+            enrichedOrder,
+            ratingStatuses?.[order.id] ?? null,
+        );
     }
 
     /**

@@ -34,6 +34,8 @@ import {
 } from './dto/payment.request';
 import { MidtransTokenResponse } from './dto/payment.response';
 import { Payment } from './entities/payment.entity';
+import { RatingService } from '../rating/rating.service';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class PaymentService {
@@ -47,6 +49,7 @@ export class PaymentService {
         private readonly dataSource: DataSource,
         private readonly pusherService: PusherService,
         private readonly orderService: OrderService,
+        private readonly ratingService: RatingService,
     ) {}
 
     private readonly logger = new Logger(PaymentService.name);
@@ -491,20 +494,29 @@ export class PaymentService {
             }
 
             await queryRunner.manager.save(payment);
-
+            const now = new Date();
             // Update the invoice.
             invoice.status = InvoiceStatus.PAID;
-            invoice.paid_at = new Date();
+            invoice.paid_at = now;
             await queryRunner.manager.save(invoice);
 
             // Update the order.
             const order = invoice.order;
             order.status = OrderStatusEnum.COMPLETED;
+            order.updated_at = now;
             queryRunner.manager.create(Order, order);
             await queryRunner.manager.save(order);
 
             // Commit the transaction BEFORE sending notifications.
             await queryRunner.commitTransaction();
+
+            // Publish event to rating service
+            this.ratingService.publishOrderCompletedEvent({
+                order_id: order.id,
+                customer_id: order.customer.id,
+                technician_id: order.technician.id,
+                completed_at: order.updated_at,
+            });
 
             // --- Send notifications AFTER the transaction is successfully committed ---
             try {
@@ -572,12 +584,35 @@ export class PaymentService {
         this.logger.debug(
             `Received Midtrans webhook: ${JSON.stringify(notificationPayload)}`,
         );
+        const signature = notificationPayload.signature_key;
+        // Verify webhook signature (CRITICAL SECURITY FIX)
+        if (!signature) {
+            this.logger.warn('Missing webhook signature header');
+            return;
+        }
+
+        const serverKey = configuration().midtrans.serverKey;
+        const rawSignatureInput = `${notificationPayload.order_id}${notificationPayload.status_code}${notificationPayload.gross_amount}${serverKey}`;
+        const expectedSignature = crypto
+            .createHash('sha512')
+            .update(rawSignatureInput)
+            .digest('hex');
+        if (signature !== expectedSignature) {
+            this.logger.warn('Invalid webhook signature received');
+            return;
+        }
 
         const queryRunner = this.dataSource.createQueryRunner();
         await queryRunner.connect();
         await queryRunner.startTransaction();
 
         try {
+            // Input validation
+            if (!notificationPayload.transaction_id) {
+                this.logger.warn('Missing transaction_id in webhook payload');
+                await queryRunner.commitTransaction();
+                return;
+            }
             // Verify the notification
             const { data: midtransResponse } =
                 await this.httpService.axiosRef.get(
@@ -585,7 +620,7 @@ export class PaymentService {
                     {
                         headers: {
                             accept: 'application/json',
-                            authorization: `Basic ${Buffer.from(`${configuration().midtrans.username}:${configuration().midtrans.password}`).toString('base64')}`,
+                            authorization: `Basic ${Buffer.from(`${configuration().midtrans.serverKey}:`).toString('base64')}`,
                         },
                     },
                 );
@@ -737,6 +772,13 @@ export class PaymentService {
                         message: customerNotification.title,
                     },
                 );
+                // Publish event to rating service
+                this.ratingService.publishOrderCompletedEvent({
+                    order_id: order.id,
+                    customer_id: order.customer.id,
+                    technician_id: order.technician.id,
+                    completed_at: order.updated_at,
+                });
             } else {
                 // If status is not settlement (e.g., expire, cancel), still notify the customer page to refetch.
                 const order = transaction.invoice.order;

@@ -154,7 +154,7 @@ export class OrderController {
     @Roles(RoleEnum.TECHNICIAN)
     @Patch(':id/status')
     async updateStatusByIdForTechnician(
-        @Request() request: RequestWithUser,
+        @Request() request: any,
         @Param('id') id: string,
         @Body() updateOrderStatusDto: UpdateOrderStatusRequestDto,
     ): Promise<ApiResponse<OrderResponse>> {
@@ -217,6 +217,7 @@ export class OrderController {
         const data = await this.orderService.getOneByIdForCustomer(
             request.user,
             id,
+            request.cookies['accessToken'],
         );
         return {
             message: 'Order fetched successfully',

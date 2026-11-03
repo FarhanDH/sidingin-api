@@ -1,12 +1,11 @@
+import { MailerModule } from '@nestjs-modules/mailer';
+import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
 import { Module } from '@nestjs/common';
+import { configDotenv } from 'dotenv';
+import { configuration } from '~/common/configuration';
 import { AuthModule } from '../auth/auth.module';
 import { EmailController } from './email.controller';
 import { EmailService } from './email.service';
-import { MailerModule } from '@nestjs-modules/mailer';
-import { EjsAdapter } from '@nestjs-modules/mailer/dist/adapters/ejs.adapter';
-import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
-import { configuration } from '~/common/configuration';
-import { configDotenv } from 'dotenv';
 
 configDotenv({ path: '.env' });
 

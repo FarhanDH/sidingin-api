@@ -9,6 +9,7 @@ import { PushSubscriptionModule } from '../push-subscription/push-subscription.m
 import { HttpModule } from '@nestjs/axios';
 import { PusherModule } from '../pusher/pusher.module';
 import { OrderModule } from '../order/order.module';
+import { RatingModule } from '../rating/rating.module';
 
 @Module({
     imports: [
@@ -19,6 +20,7 @@ import { OrderModule } from '../order/order.module';
         OrderModule,
         PushSubscriptionModule,
         PusherModule,
+        RatingModule,
     ],
     controllers: [PaymentController],
     providers: [PaymentService],

@@ -29,7 +29,7 @@ export class EmailService {
 
             // Then, ask the MailerService to send an email to the given email address.
             // The email should contain the OTP and some instructions on how to use it.
-            const result = await this.mailerService.sendMail({
+            const result = this.mailerService.sendMail({
                 // The email address to which the OTP should be sent.
                 to: otp.email,
 

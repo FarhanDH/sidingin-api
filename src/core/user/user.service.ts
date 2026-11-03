@@ -51,7 +51,6 @@ export class UserService {
         if (phoneNumber.startsWith('0')) {
             phoneNumber = phoneNumber.substring(1);
         }
-        console.log(phoneNumber);
 
         const user = await this.userRepository.findOne({
             where: { email: request.email },
@@ -95,6 +94,7 @@ export class UserService {
     }
 
     async getById(id: string): Promise<User> {
+        this.logger.debug(`UserService.getById(): `, id);
         return await this.userRepository.findOne({ where: { id } });
     }
 
